@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Super Smash Tournament Bracket</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+:root {
+  --ground: #ffffff;
+  --ink: #15192b;
+  --muted: #545a72;
+  --line: #b9bed0;
+  --slot: #f3f5fa;
+  --cobalt: #2348d8;
+  --cobalt-ink: #ffffff;
+  --sun: #ffc93c;
+  --sun-ink: #3a2a00;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ground: #12162a;
+    --ink: #eef0f8;
+    --muted: #a6acc4;
+    --line: #4a5070;
+    --slot: #1d2240;
+    --cobalt: #5b7cff;
+    --cobalt-ink: #0b1030;
+    color-scheme: dark;
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--ground);
+  color: var(--ink);
+  font-family: "Atkinson Hyperlegible", Arial, sans-serif;
+}
+header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 24px 28px 8px;
+  max-width: 1160px;
+  margin: 0 auto;
+}
+h1 {
+  margin: 0;
+  font-family: "Bricolage Grotesque", Arial, sans-serif;
+  font-weight: 800;
+  font-size: clamp(30px, 4.4vw, 52px);
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+.info { margin: 8px 0 0; color: var(--muted); font-size: 17px; }
+.tools { display: flex; gap: 10px; }
+button {
+  font: inherit;
+  font-weight: 700;
+  font-size: 15px;
+  padding: 10px 18px;
+  min-height: 44px;
+  border-radius: 10px;
+  border: 2px solid var(--ink);
+  background: var(--ground);
+  color: var(--ink);
+  cursor: pointer;
+}
+button:hover { background: var(--slot); }
+button:focus-visible, .slot:focus-visible { outline: 3px solid var(--cobalt); outline-offset: 2px; }
+.help { max-width: 1160px; margin: 0 auto; padding: 0 28px; color: var(--muted); font-size: 15px; }
+.wrap { max-width: 1160px; margin: 0 auto; padding: 8px 28px 32px; overflow-x: auto; }
+#stage { position: relative; width: 1100px; height: 740px; transform-origin: top left; }
+#lines { position: absolute; inset: 0; pointer-events: none; }
+.col {
+  position: absolute; top: 40px;
+  font-family: "Bricolage Grotesque", Arial, sans-serif;
+  font-weight: 500; font-size: 17px; color: var(--muted);
+}
+.tag { position: absolute; font-size: 13px; font-weight: 700; color: var(--muted); }
+.slot {
+  position: absolute; height: 34px;
+  display: flex; align-items: center;
+  padding: 0 12px;
+  border-radius: 8px;
+  background: var(--slot);
+  border: 2px solid var(--line);
+  font-size: 16px; font-weight: 700;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  user-select: none; touch-action: none;
+  transition: background .15s, border-color .15s, opacity .15s;
+}
+.slot.empty { font-weight: 400; color: var(--muted); font-style: italic; }
+.slot.live { cursor: grab; border-color: var(--ink); }
+.slot.won { background: var(--cobalt); border-color: var(--cobalt); color: var(--cobalt-ink); }
+.slot.lost { opacity: .45; text-decoration: line-through; }
+.slot.target { border: 2px dashed var(--cobalt); background: color-mix(in srgb, var(--cobalt) 14%, var(--slot)); }
+.slot.hover { background: color-mix(in srgb, var(--cobalt) 30%, var(--slot)); }
+.champ {
+  position: absolute; left: 880px; top: 250px; width: 200px; height: 92px;
+  border-radius: 14px; background: var(--sun); color: var(--sun-ink);
+  padding: 12px 16px; display: flex; flex-direction: column; justify-content: center;
+}
+.champ small { font-family: "Bricolage Grotesque", Arial, sans-serif; font-weight: 800; font-size: 18px; }
+.champ strong { font-size: 22px; min-height: 30px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.champ.target { outline: 3px dashed var(--cobalt); outline-offset: 3px; }
+.champ.hover { outline-style: solid; }
+.podium {
+  position: absolute; left: 880px; top: 580px; width: 200px;
+  border: 2px solid var(--ink); border-radius: 12px; padding: 12px 14px;
+}
+.podium h2 { margin: 0 0 6px; font-family: "Bricolage Grotesque", Arial, sans-serif; font-size: 18px; font-weight: 800; }
+.podium ol { margin: 0; padding-left: 22px; font-size: 16px; line-height: 1.6; }
+.podium li span { color: var(--muted); font-style: italic; }
+#ghost {
+  position: fixed; pointer-events: none; z-index: 10; display: none;
+  padding: 8px 14px; border-radius: 8px;
+  background: var(--cobalt); color: var(--cobalt-ink);
+  font-weight: 700; font-size: 16px;
+  box-shadow: 0 6px 18px rgba(0,0,0,.25);
+}
+@keyframes pop { 0% { transform: scale(1); } 40% { transform: scale(1.06); } 100% { transform: scale(1); } }
+@media (prefers-reduced-motion: no-preference) {
+  .champ.crowned { animation: pop .6s ease-out; }
+}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>Super Smash tournament</h1>
+    <p class="info">Fall Social, Friday Oct 23, Room 301. Best of 3, top 3 win prizes.</p>
+  </div>
+  <div class="tools">
+    <button type="button" id="undo">Undo</button>
+    <button type="button" id="reset">Reset bracket</button>
+  </div>
+</header>
+<p class="help">Drag the winner's name into the next box, or just click their name. Changed your mind? Drag the other player over, or hit Undo.</p>
+<div class="wrap"><div id="scaler"><div id="stage">
+  <svg id="lines" width="1100" height="740" aria-hidden="true"></svg>
+</div></div></div>
+<div id="ghost"></div>
+
+<script>
+const MATCHES = {
+  A:  ["Seth Christensen", "Henry Ou"],
+  B:  ["Liam Kim", "Brighton"],
+  R1: ["Henry Hange", {w:"A"}],
+  R2: ["Luke Rippee", "Joel Castro"],
+  R3: ["Hayden Potter", "Bryson Smith"],
+  R4: ["Noah Doug", "Abel Schuhes"],
+  R5: ["Hudson Oswald", {w:"B"}],
+  R6: ["Danner Fish", "Bryson Hamot"],
+  R7: ["Connor Wilson", "Hunter Harding"],
+  R8: ["Benjamin Hutchinson", "Pierre Kazzaline"],
+  Q1: [{w:"R1"}, {w:"R2"}], Q2: [{w:"R3"}, {w:"R4"}],
+  Q3: [{w:"R5"}, {w:"R6"}], Q4: [{w:"R7"}, {w:"R8"}],
+  S1: [{w:"Q1"}, {w:"Q2"}], S2: [{w:"Q3"}, {w:"Q4"}],
+  F:  [{w:"S1"}, {w:"S2"}],
+  T:  [{l:"S1"}, {l:"S2"}]
+};
+const ORDER = Object.keys(MATCHES);
+const PLACEHOLDER = { A: "Winner of A", B: "Winner of B" };
+const KEY = "smash-bracket-fall-2026";
+
+let winners = {};
+let history = [];
+try { winners = JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) { winners = {}; }
+
+function resolve(src) {
+  if (typeof src === "string") return src;
+  if (src.w) return winners[src.w] || null;
+  return loserOf(src.l);
+}
+function playersOf(id) { return MATCHES[id].map(resolve); }
+function loserOf(id) {
+  const w = winners[id];
+  if (!w) return null;
+  return playersOf(id).find(p => p && p !== w) || null;
+}
+function clean() {
+  for (const id of ORDER) {
+    if (winners[id] && !playersOf(id).includes(winners[id])) delete winners[id];
+  }
+}
+function save() { try { localStorage.setItem(KEY, JSON.stringify(winners)); } catch (e) {} }
+function setWinner(id, name) {
+  const ps = playersOf(id);
+  if (!ps[0] || !ps[1] || !ps.includes(name) || winners[id] === name) return;
+  history.push(JSON.stringify(winners));
+  winners[id] = name;
+  clean(); save(); render(id === "F");
+}
+
+const stage = document.getElementById("stage");
+const lines = document.getElementById("lines");
+const slots = [];
+function addSlot(match, pos, x, y, w) {
+  const el = document.createElement("div");
+  el.className = "slot";
+  el.style.left = x + "px"; el.style.top = y + "px"; el.style.width = w + "px";
+  el.tabIndex = 0;
+  stage.appendChild(el);
+  slots.push({ el, match, pos, src: MATCHES[match][pos] });
+}
+function path(d) {
+  const p = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  p.setAttribute("d", d); p.setAttribute("fill", "none");
+  p.setAttribute("stroke", "var(--line)"); p.setAttribute("stroke-width", "2");
+  lines.appendChild(p);
+}
+function label(text, x, y, cls) {
+  const d = document.createElement("div");
+  d.className = cls; d.textContent = text;
+  d.style.left = x + "px"; d.style.top = y + "px";
+  stage.appendChild(d);
+}
+
+label("Play-in", 20, 40, "col"); label("Round of 16", 220, 40, "col");
+label("Quarterfinals", 460, 40, "col"); label("Semifinals", 670, 40, "col");
+label("Final", 880, 40, "col");
+
+[["A", 135], ["B", 455]].forEach(([id, mid]) => {
+  label("Match " + id, 20, mid - 58, "tag");
+  addSlot(id, 0, 20, mid - 36, 170); addSlot(id, 1, 20, mid + 2, 170);
+  path(`M190 ${mid-19}H205V${mid+19}H190M205 ${mid}H220`);
+});
+for (let i = 0; i < 8; i++) {
+  const t = 80 + 80 * i;
+  addSlot("R" + (i + 1), 0, 220, t, 200); addSlot("R" + (i + 1), 1, 220, t + 38, 200);
+  path(`M420 ${t+17}H440V${t+55}H420M440 ${t+36}H460`);
+}
+for (let j = 0; j < 4; j++) {
+  const a = 116 + 160 * j, b = a + 80;
+  addSlot("Q" + (j + 1), 0, 460, a - 17, 170); addSlot("Q" + (j + 1), 1, 460, b - 17, 170);
+  path(`M630 ${a}H650V${b}H630M650 ${a+40}H670`);
+}
+for (let k = 0; k < 2; k++) {
+  const a = 156 + 320 * k, b = a + 160, m = a + 80, tgt = k ? 415 : 377;
+  addSlot("S" + (k + 1), 0, 670, a - 17, 170); addSlot("S" + (k + 1), 1, 670, b - 17, 170);
+  path(`M840 ${a}H852V${b}H840M852 ${m}H864V${tgt}H880`);
+}
+addSlot("F", 0, 880, 360, 200); addSlot("F", 1, 880, 398, 200);
+path("M980 342V360");
+label("3rd place match", 880, 456, "tag");
+addSlot("T", 0, 880, 478, 200); addSlot("T", 1, 880, 516, 200);
+
+const champ = document.createElement("div");
+champ.className = "champ";
+champ.innerHTML = '<small>Champion</small><strong></strong>';
+stage.appendChild(champ);
+const podium = document.createElement("div");
+podium.className = "podium";
+podium.innerHTML = '<h2>Prize winners</h2><ol><li></li><li></li><li></li></ol>';
+stage.appendChild(podium);
+
+function render(crown) {
+  for (const s of slots) {
+    const name = resolve(s.src);
+    const w = winners[s.match];
+    const ps = playersOf(s.match);
+    s.name = name;
+    s.el.textContent = name || (s.src.w && PLACEHOLDER[s.src.w]) || (s.src.l ? "Semifinal loser" : "");
+    s.el.classList.toggle("empty", !name);
+    s.el.classList.toggle("live", !!(name && ps[0] && ps[1]));
+    s.el.classList.toggle("won", !!(name && w === name));
+    s.el.classList.toggle("lost", !!(name && w && w !== name));
+    s.el.setAttribute("aria-label", name ? name + (w === name ? ", winner" : "") : "Empty slot");
+  }
+  champ.querySelector("strong").textContent = winners.F || "";
+  if (crown && winners.F) { champ.classList.remove("crowned"); void champ.offsetWidth; champ.classList.add("crowned"); }
+  const podiumNames = [winners.F, loserOf("F"), winners.T];
+  podium.querySelectorAll("li").forEach((li, i) => {
+    li.innerHTML = podiumNames[i] ? "" : "<span>To be decided</span>";
+    if (podiumNames[i]) li.textContent = podiumNames[i];
+  });
+}
+
+/* Drag and click */
+const ghost = document.getElementById("ghost");
+let drag = null;
+function targetsFor(match) {
+  const t = slots.filter(s => s.src.w === match).map(s => s.el);
+  if (match === "F") t.push(champ);
+  return t;
+}
+stage.addEventListener("pointerdown", e => {
+  const s = slots.find(x => x.el === e.target);
+  if (!s || !s.el.classList.contains("live")) return;
+  drag = { s, x: e.clientX, y: e.clientY, moved: false, targets: targetsFor(s.match), over: null };
+  s.el.setPointerCapture(e.pointerId);
+});
+stage.addEventListener("pointermove", e => {
+  if (!drag) return;
+  if (!drag.moved && Math.hypot(e.clientX - drag.x, e.clientY - drag.y) > 6) {
+    drag.moved = true;
+    ghost.textContent = drag.s.name; ghost.style.display = "block";
+    drag.targets.forEach(t => t.classList.add("target"));
+  }
+  if (!drag.moved) return;
+  ghost.style.left = (e.clientX + 12) + "px"; ghost.style.top = (e.clientY + 12) + "px";
+  const under = document.elementsFromPoint(e.clientX, e.clientY).find(el => drag.targets.includes(el) || drag.targets.includes(el.parentElement));
+  const over = under ? (drag.targets.includes(under) ? under : under.parentElement) : null;
+  if (over !== drag.over) {
+    if (drag.over) drag.over.classList.remove("hover");
+    if (over) over.classList.add("hover");
+    drag.over = over;
+  }
+});
+function endDrag(commit) {
+  if (!drag) return;
+  const { s, moved, over, targets } = drag;
+  targets.forEach(t => t.classList.remove("target", "hover"));
+  ghost.style.display = "none";
+  drag = null;
+  if (!commit) return;
+  if (!moved || over) setWinner(s.match, s.name);
+}
+stage.addEventListener("pointerup", () => endDrag(true));
+stage.addEventListener("pointercancel", () => endDrag(false));
+stage.addEventListener("keydown", e => {
+  if (e.key !== "Enter" && e.key !== " ") return;
+  const s = slots.find(x => x.el === e.target);
+  if (s && s.el.classList.contains("live")) { e.preventDefault(); setWinner(s.match, s.name); }
+});
+
+document.getElementById("undo").addEventListener("click", () => {
+  if (!history.length) return;
+  winners = JSON.parse(history.pop()); save(); render();
+});
+document.getElementById("reset").addEventListener("click", () => {
+  if (!confirm("Clear every result and start the bracket over?")) return;
+  history.push(JSON.stringify(winners)); winners = {}; save(); render();
+});
+
+/* Fit the bracket to the screen */
+const scaler = document.getElementById("scaler");
+function fit() {
+  const avail = scaler.parentElement.clientWidth - 56;
+  const scale = Math.max(0.55, Math.min(1.25, avail / 1100));
+  stage.style.transform = `scale(${scale})`;
+  scaler.style.width = (1100 * scale) + "px";
+  scaler.style.height = (740 * scale) + "px";
+}
+window.addEventListener("resize", fit);
+fit();
+render();
+</script>
+</body>
+</html>
