@@ -57,6 +57,9 @@ h1 {
   letter-spacing: -0.02em;
 }
 .info { margin: 8px 0 0; color: var(--muted); font-size: 17px; }
+.rules { max-width: 1160px; margin: 0 auto; padding: 4px 28px 0; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.rules h2 { margin: 0 6px 0 0; font-family: "Bricolage Grotesque", Arial, sans-serif; font-size: 18px; font-weight: 800; }
+.rules span { border: 2px solid var(--ink); border-radius: 999px; padding: 4px 12px; font-size: 15px; font-weight: 700; }
 .tools { display: flex; gap: 10px; }
 button {
   font: inherit;
@@ -72,12 +75,6 @@ button {
 }
 button:hover { background: var(--slot); }
 button:focus-visible, .slot:focus-visible { outline: 3px solid var(--cobalt); outline-offset: 2px; }
-.rules {
-  position: absolute; left: 20px; top: 540px; width: 170px;
-  border: 2px solid var(--ink); border-radius: 12px; padding: 12px 14px;
-}
-.rules h2 { margin: 0 0 6px; font-family: "Bricolage Grotesque", Arial, sans-serif; font-size: 18px; font-weight: 800; }
-.rules ul { margin: 0; padding-left: 18px; font-size: 15px; line-height: 1.45; }
 .wrap { max-width: 1160px; margin: 0 auto; padding: 8px 28px 32px; overflow-x: auto; }
 #stage { position: relative; width: 1100px; height: 740px; transform-origin: top left; }
 #lines { position: absolute; inset: 0; pointer-events: none; }
@@ -145,6 +142,14 @@ button:focus-visible, .slot:focus-visible { outline: 3px solid var(--cobalt); ou
     <button type="button" id="reset">Reset bracket</button>
   </div>
 </header>
+<div class="rules">
+  <h2>Rules</h2>
+  <span>Best of 3, win 2 to advance</span>
+  <span>3 stocks, 7 minute timer</span>
+  <span>Items off</span>
+  <span>Battlefield or Omega stages</span>
+  <span>Be ready when you're called</span>
+</div>
 <div class="wrap"><div id="scaler"><div id="stage">
   <svg id="lines" width="1100" height="740" aria-hidden="true"></svg>
 </div></div></div>
@@ -152,16 +157,17 @@ button:focus-visible, .slot:focus-visible { outline: 3px solid var(--cobalt); ou
 
 <script>
 const MATCHES = {
-  A:  ["Seth Christensen", "Henry Ou"],
+  A:  ["Jett Christensen", "Henry Ou"],
   B:  ["Liam Kim", "Brighton"],
+  C:  ["Hunter Harding", "Logan C."],
   R1: ["Henry Hange", {w:"A"}],
   R2: ["Luke Rippee", "Joel Castro"],
   R3: ["Hayden Potter", "Bryson Smith"],
   R4: ["Noah Doug", "Abel Schuhes"],
   R5: ["Hudson Oswald", {w:"B"}],
   R6: ["Danner Fish", "Bryson Hamot"],
-  R7: ["Connor Wilson", "Hunter Harding"],
-  R8: ["Benjamin Hutchinson", "Pierre Kazzaline"],
+  R7: ["Connor Wilson", {w:"C"}],
+  R8: ["Benjamin Hutchinson", "Pierce Kazzaline"],
   Q1: [{w:"R1"}, {w:"R2"}], Q2: [{w:"R3"}, {w:"R4"}],
   Q3: [{w:"R5"}, {w:"R6"}], Q4: [{w:"R7"}, {w:"R8"}],
   S1: [{w:"Q1"}, {w:"Q2"}], S2: [{w:"Q3"}, {w:"Q4"}],
@@ -169,8 +175,8 @@ const MATCHES = {
   T:  [{l:"S1"}, {l:"S2"}]
 };
 const ORDER = Object.keys(MATCHES);
-const PLACEHOLDER = { A: "Winner of A", B: "Winner of B" };
-const KEY = "smash-bracket-fall-2026";
+const PLACEHOLDER = { A: "Winner of A", B: "Winner of B", C: "Winner of C" };
+const KEY = "smash-bracket-fall-2026-v2";
 
 let winners = {};
 let history = [];
@@ -229,7 +235,7 @@ label("Play-in", 20, 40, "col"); label("Round of 16", 220, 40, "col");
 label("Quarterfinals", 460, 40, "col"); label("Semifinals", 670, 40, "col");
 label("Final", 880, 40, "col");
 
-[["A", 135], ["B", 455]].forEach(([id, mid]) => {
+[["A", 135], ["B", 455], ["C", 615]].forEach(([id, mid]) => {
   label("Match " + id, 20, mid - 58, "tag");
   addSlot(id, 0, 20, mid - 36, 170); addSlot(id, 1, 20, mid + 2, 170);
   path(`M190 ${mid-19}H205V${mid+19}H190M205 ${mid}H220`);
@@ -258,10 +264,6 @@ const champ = document.createElement("div");
 champ.className = "champ";
 champ.innerHTML = '<small>Champion</small><strong></strong>';
 stage.appendChild(champ);
-const rules = document.createElement("div");
-rules.className = "rules";
-rules.innerHTML = '<h2>Rules</h2><ul><li>Best of 3, win 2 to advance</li><li>3 stocks, 7 minute timer</li><li>Items off</li><li>Battlefield or Omega stages</li><li>Be ready when you\'re called</li></ul>';
-stage.appendChild(rules);
 const podium = document.createElement("div");
 podium.className = "podium";
 podium.innerHTML = '<h2>Prize winners</h2><ol><li></li><li></li><li></li></ol>';
